@@ -1,5 +1,6 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/rules-of-hooks */
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import ReservateHistoryStyles from "../../styles/books/_ReservateHistory.module.scss";
 import db from "../../Firebase";
 import { auth } from "../../Firebase";
@@ -9,8 +10,7 @@ import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/footer";
 import Head from "../../components/layout/Head";
 
-
-const ReservateHistory = () => {
+const ReservateHistory: React.FC = () => {
   //(firebase)データベースを格納
   const [reserves, setReserves] = useState<any>([]);
 
@@ -44,22 +44,18 @@ const ReservateHistory = () => {
   }
 
   const clickChange = (index: number) => {
-    console.log(index);
     setUnReserveOpenAnswer((prevState: any) => ({
       ...prevState,
       [index]: !prevState[index],
     }));
-    
   };
 
-  const clickDetails = (index: any) => {
+  const clickDetails = (index: number) => {
     setReservedOpenAnswer((prevState: any) => ({
       ...prevState,
       [index]: !prevState[index],
     }));
   };
-  console.log("f",openUnReseveAnswer)
-  console.log("j",openResevedAnswer)
 
   const clickUnlodgeOpen = async () => {
     setOpenUnlodgeDisplay(true);
@@ -93,23 +89,25 @@ const ReservateHistory = () => {
   // eslint-disable-next-line array-callback-return
   let unReserve: any = [];
   let reserved: any = [];
-  // eslint-disable-next-line array-callback-return
-  reserves.map((reserveItems: any) => {
-    const abc = Date.parse(reserveItems.checkIn);
-    if (abc > dateNum) {
-      unReserve.push(reserveItems);
-    } else {
-      reserved.push(reserveItems);
-    }
-  });
-  console.log("j",reserves);
+
+    reserves.map((reserveItems: any) => {
+      const abc = Date.parse(reserveItems.checkIn);
+      if (abc > dateNum) {
+        unReserve.push(reserveItems);
+      } else {
+        reserved.push(reserveItems);
+      }
+    });
+  
 
   return (
     <>
-  <Head title="PrinceViewHotel-予約履歴" description="ホテルの予約サイトです。-PrinceViewHotel-"/>
-        <Header />
+      <Head
+        title="PrinceViewHotel-予約履歴"
+        description="ホテルの予約サイトです。-PrinceViewHotel-"
+      />
+      <Header />
       <div className={ReservateHistoryStyles.HistoryContainer}>
-
         <h1 className={ReservateHistoryStyles.HistoryTitle}>予約履歴確認</h1>
         <UnReserveTitle
           clickUnlodgeOpen={clickUnlodgeOpen}
@@ -173,21 +171,22 @@ export const UnReserve = (props: any) => {
         <div className={ReservateHistoryStyles.unLodgerContentsList}>
           {unReserve.map((unReserveItem: any, index: number) => {
             return (
-              <>
+              <div key={index}>
                 <div className={ReservateHistoryStyles.unLodgerContentsLists}>
                   <p>
-                    ・{unReserveItem.checkIn}〜&nbsp;&nbsp;{unReserveItem.plan}
+                    ・{unReserveItem.checkIn}〜<br />
+                    {unReserveItem.plan}
                   </p>
                   <button onClick={() => clickChange(index)}>詳細を見る</button>
                   {unReserveItem.question}
                 </div>
-                
+
                 <div>
                   {openUnReseveAnswer[index] && unReserve ? (
-                    <UnReservateDetails unReserveItem={unReserveItem}/>
+                    <UnReservateDetails unReserveItem={unReserveItem} />
                   ) : undefined}
                 </div>
-              </>
+              </div>
             );
           })}
         </div>
@@ -196,7 +195,7 @@ export const UnReserve = (props: any) => {
   );
 };
 
-export const UnReservateDetails = ({unReserveItem} :any) => {
+export const UnReservateDetails = ({ unReserveItem }: any) => {
   return (
     <div className={ReservateHistoryStyles.unReservateDetails}>
       <ul>
@@ -264,12 +263,13 @@ export const Reserved = (props: any) => {
         <p className={ReservateHistoryStyles.subTitle}>予約内容</p>
       </div>
       <div className={ReservateHistoryStyles.lodgedContentsList}>
-        {reserved.map((reservedItem: any, index: any) => {
+        {reserved.map((reservedItem: any, index: number) => {
           return (
-            <>
+            <div key={index}>
               <div className={ReservateHistoryStyles.lodgedContentsLists}>
                 <p>
-                  ・{reservedItem.checkIn}〜&nbsp;&nbsp;{reservedItem.plan}
+                  ・{reservedItem.checkIn}〜<br />
+                  {reservedItem.plan}
                 </p>
                 <button onClick={() => clickDetails(index)}>詳細を見る</button>
                 {reservedItem.question}
@@ -279,7 +279,7 @@ export const Reserved = (props: any) => {
                   <ReservateDetails reservedItem={reservedItem} />
                 ) : undefined}
               </div>
-            </>
+            </div>
           );
         })}
       </div>

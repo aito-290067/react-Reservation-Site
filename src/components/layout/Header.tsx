@@ -6,10 +6,6 @@ import { auth, provider } from "../../Firebase";
 import { GiFrogPrince } from "react-icons/gi";
 import Hamburger from "hamburger-react";
 import { useState } from "react";
-// yarn add hamburger-react;
-//yarn add react-helmet
-//yarn add @types/react-helmet
-//yarn add react-helmet-async
 import { useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +33,7 @@ const Header = () => {
       }
     });
 
+    // ex.) hJ2JnzBn=1ori4kgk 
     // gestID（hJ2JnzBn）が入っていなければ、ランダムな文字列をcookieに追加
     if (cookieList.length === 0) {
       let randomId = Math.random().toString(32).substring(2);
@@ -56,7 +53,8 @@ const Header = () => {
 
   return (
     <>
-      <div className={headerStyle.headerFlex}>
+    {/* 上部移動用のID追加（react-scroll） */}
+      <div className={headerStyle.headerFlex} id="top">
         <Link to={"/"}>
           <h1>
             <GiFrogPrince /> Prince'View Hotel

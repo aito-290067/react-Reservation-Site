@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction, useCallback } from "react";
 import {
-  addDoc,
   collection,
   getDocs,
   limit,
@@ -13,22 +12,12 @@ import db, { auth } from "../../Firebase";
 import RoomDetailStyle from "../../styles/rooms/_RoomDetails.module.scss";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/footer";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useParams, useSearchParams } from "react-router-dom";
-import { Navigate } from "react-router-dom";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import { HiOutlineChevronLeft } from "react-icons/hi";
-import PlanRecomendSwiper from "../../components/Organisms/PlanRecomendSwiper";
+import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import Calender from "../../components/Atoms/Calender";
 import Head from "../../components/layout/Head";
-
-// const status = 404;
-// if (status === 404) {
-// <Navigate to="/notfound" />;
-// }
+import SecondaryLink from "../../components/Atoms/button/SecondaryLink";
 
 const PlanDetails = () => {
   const [num, setNum] = useState(1);
@@ -36,10 +25,8 @@ const PlanDetails = () => {
   const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState<any>([]);
   const [plans, setPlans] = useState<any>([]);
-  const [roomsId, setRoomsId] = useState<any>([]);
   const [inputDate, setInputDate] = useState(false);
   const [datetext, setDatetext] = useState("");
-
 
   const navigation = useNavigate();
   const [user] = useAuthState(auth);
@@ -49,13 +36,11 @@ const PlanDetails = () => {
     // 以下、cookie取り出し処理
     const splitCookie = document.cookie.split(";");
     const list = [];
-
     for (let i = 0; i < splitCookie.length; i++) {
       list.push(splitCookie[i].split("="));
     }
-
     // cookieにgestID（hJ2JnzBn）がセットされていな場合、付与する
-    list.map((data, index) => {
+    list.map((data) => {
       if (data[0].includes("hJ2JnzBn")) {
         cookieList.push(data[0]);
       }
@@ -66,7 +51,9 @@ const PlanDetails = () => {
   const RoomData = collection(db, "gestRoomType");
   const PlanData = collection(db, "Plan");
 
-  const roomtype = SearchParams.get("plan");
+  const roomarea = SearchParams.get("ad3r");
+  const roomstype = SearchParams.get("room");
+  const roomtype = SearchParams.get("plan1");
   const roomtype2 = SearchParams.get("plan2");
   const roomtype3 = SearchParams.get("plan3");
   const roomtype4 = SearchParams.get("plan4");
@@ -75,46 +62,130 @@ const PlanDetails = () => {
     getDocs(PlanData).then((SnapShot) => {
       setPlans(SnapShot.docs.map((doc) => ({ ...doc.data() })));
     });
-    if (roomtype) {
-      const detailRoom = query(
-        RoomData,
-        limit(1),
-        where("plan1", "==", roomtype)
-      ); //一つだけ表示
-      getDocs(detailRoom).then((snapShot) => {
-        setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
-      });
-    } else if (roomtype2) {
-      const detailRoom = query(
-        RoomData,
-        limit(1),
-        where("plan2", "==", roomtype2)
-      ); //一つだけ表示
-      getDocs(detailRoom).then((snapShot) => {
-        setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
-      });
-    } else if (roomtype3) {
-      const detailRoom = query(
-        RoomData,
-        limit(1),
-        where("plan3", "==", roomtype3)
-      ); //一つだけ表示
-      getDocs(detailRoom).then((snapShot) => {
-        setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
-      });
-    } else if (roomtype4) {
-      const detailRoom = query(
-        RoomData,
-        limit(1),
-        where("plan4", "==", roomtype4)
-      ); //一つだけ表示
-      getDocs(detailRoom).then((snapShot) => {
-        setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
-      });
+
+    if (roomstype) {
+      if (roomtype) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          where("plan1", "==", roomtype)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype2) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          where("plan2", "==", roomtype2)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype3) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          where("plan3", "==", roomtype3)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype4) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          where("plan4", "==", roomtype4)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      }
+    } else if (roomarea) {
+      if (roomtype) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          orderBy("price", "desc"),
+          where("plan1", "==", roomtype)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype2) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          orderBy("price", "desc"),
+          where("plan2", "==", roomtype2)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype3) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          orderBy("price", "desc"),
+          where("plan3", "==", roomtype3)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype4) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          orderBy("price", "desc"),
+          where("plan4", "==", roomtype4)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      }
+    } else {
+      if (roomtype) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+
+          where("plan1", "==", roomtype)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype2) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          where("plan2", "==", roomtype2)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype3) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          where("plan3", "==", roomtype3)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      } else if (roomtype4) {
+        const detailRoom = query(
+          RoomData,
+          limit(1),
+          where("plan4", "==", roomtype4)
+        );
+        getDocs(detailRoom).then((snapShot) => {
+          setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
+        });
+      }
     }
   }, []);
 
-  const obroop = () => {
+  const obroop = useCallback(() => {
     const price = [];
     for (let i = 1; i <= 3; i++) {
       price.push(
@@ -124,12 +195,22 @@ const PlanDetails = () => {
       );
     }
     return price;
-  };
+  }, []);
+  const [err, setErr] = useState([]);
+  const errMsg: any = [];
 
   const handleResarve = () => {
+    setErr([]);
+
+    if (datetext.length <= 0) {
+
+      errMsg.push("チェックインの日付を選択してください")
+
+    } else if (new Date(datetext) <= new Date(new Date().toString())) {
+      errMsg.push("本日以降の日付を選択してください")
+
+    } else {
     if (user) {
-      console.log(user.email);
-      const reserveData = collection(db, "reserve");
       const data = {
         adultsNum: Number(adult),
         childrenNum: Number(children),
@@ -139,13 +220,10 @@ const PlanDetails = () => {
         totalDate: Number(num),
         plan: roomtype || roomtype2 || roomtype3 || roomtype4,
         mail: user.email,
-        // gestId:
       };
-      console.log(datetext)
-      addDoc(reserveData, data);
+
       navigate("/books/ReservateConfirm", { state: data });
     } else {
-      const reserveData = collection(db, "reserve");
       const data = {
         adultsNum: adult,
         childrenNum: children,
@@ -154,22 +232,11 @@ const PlanDetails = () => {
         roomType: String(room),
         totalDate: Number(num),
       };
-      // navigate("/users/login")
       navigation("/users/login", { state: data });
       document.cookie = "next=confirm; path=/;";
     }
-  };
-
-  const handleDateClick = (arg: any) => {
-    if (inputDate === false) {
-      arg.dayEl.style.backgroundColor = "steelblue"; //カレンダーに色つける
-      setInputDate(true);
-      setDatetext(arg.dateStr);
-    } else if (inputDate === true) {
-      arg.dayEl.style.backgroundColor = ""; //カレンダーの色を変える
-      setInputDate(false);
-      // alert(arg.dateStr)
-    }
+  }
+    setErr(errMsg);
   };
 
   const room = rooms.map((room: any) => room.area);
@@ -194,12 +261,17 @@ const PlanDetails = () => {
 
   return (
     <>
-    <Head title="PrinceViewHotel-プラン" description="ホテルの予約サイトです。-PrinceViewHotel-"/>
+      <Head
+        title="PrinceViewHotel-プラン"
+        description="ホテルの予約サイトです。-PrinceViewHotel-"
+      />
       <Header />
       <>
-        <Link to={"/rooms/Gestroom"} className={RoomDetailStyle.detaillink}>
-          <HiOutlineChevronLeft size={25} /> 客室・プラン{" "}
-        </Link>
+        <SecondaryLink
+          title="客室・プランへ戻る"
+          path={"/rooms/Gestroom"}
+          classname={RoomDetailStyle.containerAllDetail}
+        />
         {rooms.map((room: any) => {
           return (
             <div key={room.id} className={RoomDetailStyle.detailcontainers}>
@@ -223,6 +295,13 @@ const PlanDetails = () => {
                   </div>
                 </div>
                 <div className={RoomDetailStyle.detailplan}>
+                {err.map((error: any, index: number) => {
+                    return (
+                      <p key={index} className={RoomDetailStyle.err} style={{color:"red",textAlign:"center"}}>
+                        ※{error}
+                      </p>
+                    );
+                  })}
                   {roomtype ? (
                     <>
                       <p className={RoomDetailStyle.planName}>プラン名</p>
@@ -311,7 +390,7 @@ const PlanDetails = () => {
                     </p>
                   </div>
                   <div className={RoomDetailStyle.detailBtn}>
-                    <PrimaryButton onClick={ handleResarve}>
+                    <PrimaryButton onClick={handleResarve}>
                       予約する
                     </PrimaryButton>
                   </div>
@@ -337,26 +416,15 @@ const PlanDetails = () => {
   );
 };
 
-export const RecomendRoom = () => {
+export const RecomendRoom: React.FC = () => {
   const PlanData = collection(db, "Plan");
   const detailPlan = query(PlanData, limit(3));
   const [plans, setPlans] = useState<any>([]);
-  const[posts,SetPosts]=useState<any>([])
- 
   useEffect(() => {
     getDocs(detailPlan).then((snapShot) => {
       setPlans(snapShot.docs.map((doc) => ({ ...doc.data() })));
     });
   }, []);
-
-  // const getRoomData = () => {
-  //   const postDate = collection(db, "Plan");
-  //   getDocs(postDate).then((snapShot) => {
-  //     SetPosts(snapShot.docs.map((doc) => ({ ...doc.data() })))
-  //   })
-  //   const pathList: any = []
-    
-
   return (
     <>
       <p className={RoomDetailStyle.recomendName}>お客さまにおすすめのプラン</p>

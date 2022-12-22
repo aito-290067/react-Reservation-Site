@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, SetStateAction, useState } from "react";
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { useEffect } from "react";
 import PrimaryButton from "../../components/Atoms/button/PrimaryButton";
@@ -6,19 +6,16 @@ import db, { auth } from "../../Firebase";
 import RoomDetailStyle from "../../styles/rooms/_RoomDetails.module.scss";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/footer";
-import { Link, useLocation } from "react-router-dom";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { HiOutlineChevronLeft } from "react-icons/hi";
 import { RecomendRoom } from "./PlanDetails";
 import { useDispatch, useSelector } from "react-redux";
 import { setAdultCount, setChildInput } from "../../store/SearchSlice";
 import Stays from "../../components/Organisms/rooms/Stays";
 import Calender from "../../components/Atoms/Calender";
 import Head from "../../components/layout/Head";
+import PrimaryLink from "../../components/Atoms/PrimaryLink";
+import SecondaryLink from "../../components/Atoms/button/SecondaryLink";
 
 const RoomDetails = () => {
   const [num, setNum] = useState(1);
@@ -43,10 +40,10 @@ const RoomDetails = () => {
 
   // ログイン情報
   const [user] = useAuthState(auth);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   // ゲストID情報取得
-  const [gestIdCookie, SetGestIdCookie] = useState();
+  // const [gestIdCookie, SetGestIdCookie] = useState();
 
   // gestID（hJ2JnzBn）の入れ物
   const cookieList: any = [];
@@ -71,7 +68,7 @@ const RoomDetails = () => {
 
   useEffect(() => {
     const roomtype = SearchParams.get("room");
-    const detailRoom = query(RoomData, limit(1), where("id", "==", roomtype)); //一つだけ表示
+    const detailRoom = query(RoomData, limit(1), where("Id", "==", roomtype)); 
     getDocs(detailRoom).then((snapShot) => {
       setRooms(snapShot.docs.map((doc) => ({ ...doc.data() })));
     });
@@ -79,7 +76,7 @@ const RoomDetails = () => {
 
   const obroop = () => {
     const price = [];
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 2; i++) {
       price.push(
         <option key={i} value={i}>
           {i}人
@@ -89,38 +86,61 @@ const RoomDetails = () => {
     return price;
   };
 
+  const [err, setErr] = useState([]);
+  const errMsg: any = [];
+
   // ログインログアウト判定追加
   const handleResarve = () => {
-    if (user) {
-      console.log(user.email);
-      const data = {
-        adultsNum: Number(adultEl),
-        childrenNum: Number(childEl),
-        checkIn: datetext,
-        price: result,
-        roomType: String(room),
-        totalDate: Number(num),
-        mail: user.email,
-      };
-      // addDoc(reserveData, data);
-      navigation("/books/ReservateConfirm", { state: data });
-      // navigate("/books/ReservateConfirm");
+    setErr([]);
+
+    // adultElの初期値が１なので、adultEl===""は消しました
+    // カレンダーの上にエラーを表示させています
+
+    // チェックイン日が選択されていない場合
+    if (datetext.length <= 0) {
+      // errMsg.push("項目を正しく入力してください")
+      errMsg.push("チェックインの日付を選択してください")
+
+      // 過去の日付が選択されている場合
+    } else if (new Date(datetext) <= new Date(new Date().toString())) {
+      errMsg.push("本日以降の日付を選択してください")
+
     } else {
-      // const reserveData = collection(db, "reserve");
-      const data = {
-        adultsNum: adultEl,
-        childrenNum: childEl,
-        checkIn: datetext,
-        price: result,
-        roomType: String(room),
-        totalDate: Number(num),
-      };
-      // navigate("/users/login")
-      navigation("/users/login", { state: data });
-      document.cookie = "next=confirm; path=/;";
+      // ログインしている場合
+      if (user) {
+        
+        const data = {
+          adultsNum: Number(adultEl),
+          childrenNum: Number(childEl),
+          checkIn: datetext,
+          price: result,
+          roomType: String(room),
+          totalDate: Number(num),
+          mail: user.email,
+        };
+
+        // 予約確認画面へdataを渡す
+        navigation("/books/ReservateConfirm", { state: data });
+
+        // ログインしていない場合
+      } else {
+
+        const data = {
+          adultsNum: adultEl,
+          childrenNum: childEl,
+          checkIn: datetext,
+          price: result,
+          roomType: String(room),
+          totalDate: Number(num),
+        };
+
+        // ログイン画面を経由し、予約確認画面へデータを渡す
+        navigation("/users/login", { state: data });
+        document.cookie = "next=confirm; path=/;";
+      }
     }
+    setErr(errMsg);
   };
-  // const gestRoomData = collection(db, "gestRoomType");
 
   const room = rooms.map((room: any) => room.area);
   const price = rooms.map((room: any) => room.price);
@@ -131,12 +151,17 @@ const RoomDetails = () => {
 
   return (
     <>
-    <Head title="PrinceViewHotel-客室" description="ホテルの予約サイトです。-PrinceViewHotel-"/>
+      <Head
+        title="PrinceViewHotel-客室"
+        description="ホテルの予約サイトです。-PrinceViewHotel-"
+      />
       <Header />
       <div className={RoomDetailStyle.containerAllDetail}>
-        <Link to={"/rooms/Gestroom"} className={RoomDetailStyle.detaillink}>
-          <HiOutlineChevronLeft size={25} /> 客室・プランへ戻る{" "}
-        </Link>
+        <SecondaryLink
+          title="客室・プランへ戻る"
+          path={"/rooms/Gestroom"}
+          classname={RoomDetailStyle.containerAllDetail}
+        />
         {rooms.map((room: any) => {
           return (
             <div key={room.id} className={RoomDetailStyle.detailcontainers}>
@@ -150,7 +175,8 @@ const RoomDetails = () => {
                   />
                   <div className={RoomDetailStyle.detailCheck}>
                     <p>※チェックインの日付を選択してください</p>
-                    {/* inputDate,setInputDate,setDatetext */}
+
+
                     <Calender
                       inputDate={inputDate}
                       setInputDate={setInputDate}
@@ -160,7 +186,15 @@ const RoomDetails = () => {
                     <p>チェックアウト：{room.checkOut}</p>
                   </div>
                 </div>
+
                 <div className={RoomDetailStyle.detailplan}>
+                  {err.map((error: any, index: number) => {
+                    return (
+                      <p key={index} className={RoomDetailStyle.err} style={{color:"red"}}>
+                        ※{error}
+                      </p>
+                    );
+                  })}
                   <p className={RoomDetailStyle.count}>人数</p>
                   <div className={RoomDetailStyle.detailcount}>
                     <p>大人</p>
@@ -200,13 +234,11 @@ const RoomDetails = () => {
                 </p>
               </div>
               <RecomendRoom />
-              <Link
-                to={"/rooms/Gestroom"}
-                className={RoomDetailStyle.detaillink}
-              >
-                {" "}
-                →前の画面に戻る{" "}
-              </Link>
+              <PrimaryLink
+                title="→前の画面に戻る"
+                path={"/rooms/Gestroom"}
+                classname={RoomDetailStyle.detaillink}
+              />
             </div>
           );
         })}
