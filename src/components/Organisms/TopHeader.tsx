@@ -1,12 +1,10 @@
-import React from 'react'
 import style from "../../styles/top/_Top.module.scss"
 import { Link as Scroll } from "react-scroll";
-import scrollImage from "../../topMaterial/scroll3.png";
 
 export const TopHeader = () => {
   return (
     <header className={style.topImage}>
-      <p className={style.hotelName} >Prince'Vuew Hotel</p>
+      <p className={style.hotelName} >Prince'View Hotel</p>
       {/* スクロールのスピード　 durationで設定*/}
       <div  >
         <Scroll to="concept" smooth={true} duration={1300} offset={0}>
